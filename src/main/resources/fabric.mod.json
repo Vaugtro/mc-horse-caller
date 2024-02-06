@@ -1,8 +1,8 @@
 {
 	"schemaVersion": 1,
-	"id": "modid",
+	"id": "horse-caller",
 	"version": "${version}",
-	"name": "Example mod",
+	"name": "horse-caller",
 	"description": "This is an example description! Tell everyone what your mod is about!",
 	"authors": [
 		"Me!"
@@ -12,26 +12,26 @@
 		"sources": "https://github.com/FabricMC/fabric-example-mod"
 	},
 	"license": "CC0-1.0",
-	"icon": "assets/modid/icon.png",
+	"icon": "assets/horse-caller/icon.png",
 	"environment": "*",
 	"entrypoints": {
 		"main": [
-			"com.example.ExampleMod"
+			"com.horsecall.pathfind.Horsecaller"
 		],
 		"client": [
-			"com.example.ExampleModClient"
+			"com.horsecall.pathfind.HorsecallerClient"
 		]
 	},
 	"mixins": [
-		"modid.mixins.json",
+		"horse-caller.mixins.json",
 		{
-			"config": "modid.client.mixins.json",
+			"config": "horse-caller.client.mixins.json",
 			"environment": "client"
 		}
 	],
 	"depends": {
-		"fabricloader": ">=0.15.0",
-		"minecraft": "~1.20.4",
+		"fabricloader": ">=0.15.6",
+		"minecraft": "~1.20.1",
 		"java": ">=17",
 		"fabric-api": "*"
 	},

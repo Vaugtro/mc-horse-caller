@@ -22,7 +22,7 @@ loom {
     splitEnvironmentSourceSets()
 
 	mods {
-		"modid" {
+		"horse-caller" {
 			sourceSet sourceSets.main
 			sourceSet sourceSets.client
 		}
