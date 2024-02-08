@@ -68,7 +68,8 @@ public class HorsecallerClient implements ClientModInitializer {
 
 			// Execute the async runnable thread on the server
 			CompletableFuture<Void> completableFutureSearch = client.getServer().submit(search);
-
+			
+			// Wait for the search to finish
 			try {
 				completableFutureSearch.get();
 			} catch (InterruptedException | ExecutionException e) {
