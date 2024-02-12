@@ -8,6 +8,7 @@ import net.minecraft.entity.passive.AbstractHorseEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.Box;
+import org.jetbrains.annotations.NotNull;
 import org.lwjgl.glfw.GLFW;
 
 import net.minecraft.client.option.KeyBinding;
@@ -17,6 +18,8 @@ import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -24,9 +27,8 @@ import java.util.function.Predicate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static java.lang.Thread.sleep;
-
 public class HorsecallerClient implements ClientModInitializer {
+	private static final List<AbstractHorseEntity> bacalosList = new ArrayList<>();
 
 	public static final Logger LOGGER = LoggerFactory.getLogger("Horse Caller");
 
@@ -41,34 +43,16 @@ public class HorsecallerClient implements ClientModInitializer {
 	);
 
 	private static void onEndTick(MinecraftClient client) {
+		assert client.player != null;
+		assert client.getServer() != null;
+
 		while (PRINT_KEY_BINDING.wasPressed()) {
 
-			assert client.player != null;
-			assert client.getServer() != null;
-
-
-			UUID playerUuid = client.player.getUuid();
-
-			// Get the player position
-			double x = client.player.getX();
-			double y = client.player.getY();
-			double z = client.player.getZ();
-
-			// Set a box search range around the player position
-			Box searchRange = new Box(x + 32, y + 32, z + 16, x - 32, y - 32, z - 16);
-
-			// Get the server overworld where the player is
-			ServerWorld world = client.getServer().getOverworld();
-
-			// Set a predicate to set multiple conditions on the entity search
-			Predicate<Entity> predicate = entity -> entity instanceof Tameable;
-
-			// Create a runnable thread to search the entities
-			SearchEntitiesInRangeRunnable search = new SearchEntitiesInRangeRunnable(searchRange, world, predicate);
+			SearchEntitiesInRangeRunnable search = getSearchEntitiesInRangeRunnable(client);
 
 			// Execute the async runnable thread on the server
 			CompletableFuture<Void> completableFutureSearch = client.getServer().submit(search);
-			
+
 			// Wait for the search to finish
 			try {
 				completableFutureSearch.get();
@@ -79,15 +63,63 @@ public class HorsecallerClient implements ClientModInitializer {
             // Iterate through the search results
 			for (Entity entity : search.getResults()) {
 				if (entity instanceof AbstractHorseEntity horseEntity) {
+					if (horseEntity.isTame() && client.player.getUuid() == horseEntity.getOwnerUuid()) {
+						client.player.sendMessage(
+							Text.literal(
+								String.format("Horse UUID: %s, Player UUID: %s\n, Pos: %s\n",
+										horseEntity.getUuid(),
+										horseEntity.getOwnerUuid(),
+										horseEntity.getPos()
+								)
+							), false
+						);
 
-					if (horseEntity.isTame()) {
-						client.player.sendMessage(Text.literal(String.format("Horse name: %s", horseEntity.getOwnerUuid())), false);
+						bacalosList.add(horseEntity);
+						break;
 					}
 				}
 			}
 
 			client.player.sendMessage(Text.literal("The Key MINUS was pressed!"), false);
 		}
+
+		client.submit(() -> {
+			if (!bacalosList.isEmpty()) {
+				var bacaloPrime = bacalosList.get(0);
+				var bacaloDistance = bacaloPrime.getPos().subtract(client.player.getPos()).length();
+				var nav = bacaloPrime.getNavigation();
+
+				if (bacaloDistance > 3) {
+					client.getServer().submit(() -> nav.startMovingTo(client.player, 3));
+				} else {
+					System.out.println("Bacalo Distance: " + bacaloDistance);
+					bacalosList.remove(0);
+				}
+			}
+		});
+    }
+
+	@NotNull
+	private static SearchEntitiesInRangeRunnable getSearchEntitiesInRangeRunnable(MinecraftClient client) {
+		UUID playerUuid = client.player.getUuid();
+
+		// Get the player position
+		double x = client.player.getX();
+		double y = client.player.getY();
+		double z = client.player.getZ();
+
+		// Set a box search range around the player position
+		Box searchRange = new Box(x + 32, y + 32, z + 32, x - 32, y - 32, z - 32);
+
+		// Get the server overworld where the player is
+		ServerWorld world = client.getServer().getOverworld();
+
+		// Set a predicate to set multiple conditions on the entity search
+		Predicate<Entity> predicate = entity -> entity instanceof Tameable;
+
+		// Create a runnable thread to search the entities
+		SearchEntitiesInRangeRunnable search = new SearchEntitiesInRangeRunnable(searchRange, world, predicate);
+		return search;
 	}
 
 	@Override
