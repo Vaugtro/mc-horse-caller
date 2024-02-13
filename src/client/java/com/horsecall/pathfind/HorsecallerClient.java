@@ -1,5 +1,6 @@
 package com.horsecall.pathfind;
 
+import com.horsecall.pathfind.gui.HorseSelectorScreen;
 import com.horsecall.pathfind.helper.EntityWithDistance;
 import com.horsecall.pathfind.runnable.SearchEntitiesInRangeRunnable;
 import net.minecraft.client.MinecraftClient;
@@ -40,10 +41,24 @@ public class HorsecallerClient implements ClientModInitializer {
 					"key.category.call-horse"
 			)
 	);
+	// INFO: Keybind just for testing the HorseSelectorScreen
+	private static final KeyBinding SHOW = KeyBindingHelper.registerKeyBinding(
+			new KeyBinding(
+					"key.horse-caller.pp",
+					InputUtil.Type.KEYSYM,
+					GLFW.GLFW_KEY_EQUAL,
+					"key.category.pp"
+			)
+	);
 
 	private static void onEndTick(MinecraftClient client) {
 		assert client.player != null;
 		assert client.getServer() != null;
+
+		while (SHOW.wasPressed()){
+			client.setScreen(new HorseSelectorScreen());
+			System.out.println("Pressed");
+		}
 
 		while (PRINT_KEY_BINDING.wasPressed()) {
 
