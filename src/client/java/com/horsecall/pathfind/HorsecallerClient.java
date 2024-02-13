@@ -1,15 +1,15 @@
 package com.horsecall.pathfind;
 
 import com.horsecall.pathfind.helper.EntityWithDistance;
-import com.horsecall.pathfind.runnable.SearchEntitiesInRangeRunnable;
+import com.horsecall.pathfind.task.SearchEntitiesInRangeSupplier;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.Tameable;
 import net.minecraft.entity.passive.AbstractHorseEntity;
+import net.minecraft.entity.passive.HorseColor;
+import net.minecraft.entity.passive.HorseEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.Box;
-import org.jetbrains.annotations.NotNull;
 import org.lwjgl.glfw.GLFW;
 
 import net.minecraft.client.option.KeyBinding;
@@ -19,7 +19,6 @@ import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -47,27 +46,13 @@ public class HorsecallerClient implements ClientModInitializer {
 
 		while (PRINT_KEY_BINDING.wasPressed()) {
 
-			SearchEntitiesInRangeRunnable search = getSearchEntitiesInRangeRunnable(client);
-
-			// Execute the async runnable thread on the server
-			CompletableFuture<Void> completableFutureSearch = client.getServer().submit(search);
-
-			// Wait for the search to finish
-			try {
-				completableFutureSearch.get();
-			} catch (InterruptedException | ExecutionException e) {
-				throw new RuntimeException(e);
-			}
-
-			// Save entities on a list of EntityWithDistance class
-			List<EntityWithDistance> horses = search.sortResultsPerDistance(client.player);
+			List<EntityWithDistance> result = SearchEntitiesInRangeSupplier(client);
 
 			client.player.sendMessage(Text.literal("The Key MINUS was pressed!"), false);
 		}
 	}
-
-	@NotNull
-	private static SearchEntitiesInRangeRunnable getSearchEntitiesInRangeRunnable(MinecraftClient client) {
+	
+	private static List<EntityWithDistance> SearchEntitiesInRangeSupplier(MinecraftClient client) {
 
 		assert client.player != null;
 		assert client.getServer() != null;
@@ -90,7 +75,18 @@ public class HorsecallerClient implements ClientModInitializer {
 		Predicate<Entity> predicate = entity -> ((entity instanceof AbstractHorseEntity horseEntity) && horseEntity.getOwnerUuid() != null) && !horseEntity.hasPassengers() && horseEntity.getOwnerUuid().compareTo(playerUuid) == 0;;
 
 		// Create a runnable thread to search the entities
-		return new SearchEntitiesInRangeRunnable(searchRange, world, predicate);
+
+		// Execute the async runnable thread on the server
+		CompletableFuture<List<EntityWithDistance>> completableFutureSearch = client.getServer().submit(new SearchEntitiesInRangeSupplier(searchRange, world, predicate, client.player));
+
+		// Wait for the search to finish and return the results
+		try {
+			return completableFutureSearch.get();
+		} catch (InterruptedException | ExecutionException e) {
+			throw new RuntimeException(e);
+		}
+
+
 	}
 
 	@Override
