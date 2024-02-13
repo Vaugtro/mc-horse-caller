@@ -1,15 +1,16 @@
 package com.horsecall.pathfind;
 
 import com.horsecall.pathfind.helper.EntityWithDistance;
-import com.horsecall.pathfind.task.SearchEntitiesInRangeSupplier;
+import com.horsecall.pathfind.util.SearchEntitiesInRangeSupplier;
+import io.netty.buffer.Unpooled;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.passive.AbstractHorseEntity;
-import net.minecraft.entity.passive.HorseColor;
-import net.minecraft.entity.passive.HorseEntity;
+import net.minecraft.network.PacketByteBuf;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.Box;
+import org.jetbrains.annotations.NotNull;
 import org.lwjgl.glfw.GLFW;
 
 import net.minecraft.client.option.KeyBinding;
@@ -19,11 +20,12 @@ import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,8 +47,23 @@ public class HorsecallerClient implements ClientModInitializer {
 		assert client.getServer() != null;
 
 		while (PRINT_KEY_BINDING.wasPressed()) {
+			PacketByteBuf packet = new PacketByteBuf(Unpooled.buffer());
 
 			List<EntityWithDistance> result = SearchEntitiesInRangeSupplier(client);
+
+			packet.writeCollection(result, new PacketByteBuf.PacketWriter<EntityWithDistance>() {
+				@Override
+				public void accept(PacketByteBuf packetByteBuf, EntityWithDistance entityWithDistance) {
+					packetByteBuf.writeByteArray(EntityWithDistance.Serializer.serialize(entityWithDistance));
+				}
+			});
+
+
+
+			List<?> uwu = packet.readList(PacketByteBuf::readByteArray).stream().map(EntityWithDistance.Serializer::desserialize).toList();
+
+
+			//client.getServer().getPlayerManager().getPlayer().sendMessageToClient();
 
 			client.player.sendMessage(Text.literal("The Key MINUS was pressed!"), false);
 		}
@@ -72,9 +89,7 @@ public class HorsecallerClient implements ClientModInitializer {
 		ServerWorld world = client.getServer().getOverworld();
 
 		// Set a predicate to set multiple conditions on the entity search
-		Predicate<Entity> predicate = entity -> ((entity instanceof AbstractHorseEntity horseEntity) && horseEntity.getOwnerUuid() != null) && !horseEntity.hasPassengers() && horseEntity.getOwnerUuid().compareTo(playerUuid) == 0;;
-
-		// Create a runnable thread to search the entities
+		Predicate<Entity> predicate = entity -> ((entity instanceof AbstractHorseEntity horseEntity) && horseEntity.getOwnerUuid() != null) && !horseEntity.hasPassengers() && horseEntity.getOwnerUuid().compareTo(playerUuid) == 0;
 
 		// Execute the async runnable thread on the server
 		CompletableFuture<List<EntityWithDistance>> completableFutureSearch = client.getServer().submit(new SearchEntitiesInRangeSupplier(searchRange, world, predicate, client.player));
@@ -85,12 +100,12 @@ public class HorsecallerClient implements ClientModInitializer {
 		} catch (InterruptedException | ExecutionException e) {
 			throw new RuntimeException(e);
 		}
-
-
 	}
 
 	@Override
 	public void onInitializeClient() {
+
+		//ClientPlayNetworking.createC2SPacket();
 		// This entrypoint is suitable for setting up client-specific logic, such as rendering.
 		ClientTickEvents.END_CLIENT_TICK.register(HorsecallerClient::onEndTick);
 	}

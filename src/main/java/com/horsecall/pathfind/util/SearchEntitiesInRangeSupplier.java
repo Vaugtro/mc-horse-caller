@@ -1,4 +1,4 @@
-package com.horsecall.pathfind.task;
+package com.horsecall.pathfind.util;
 
 
 import com.horsecall.pathfind.helper.EntityWithDistance;
