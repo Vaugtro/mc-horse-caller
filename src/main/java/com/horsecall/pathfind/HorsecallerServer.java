@@ -6,7 +6,7 @@ import org.slf4j.LoggerFactory;
 
 public class HorsecallerServer implements DedicatedServerModInitializer {
 
-    public static final Logger LOGGER = LoggerFactory.getLogger("horse-caller/Server");
+    public static final Logger LOGGER = LoggerFactory.getLogger(Horsecaller.MOD_ID + "/Server");
     @Override
     public void onInitializeServer() {
         LOGGER.info("POOP");
