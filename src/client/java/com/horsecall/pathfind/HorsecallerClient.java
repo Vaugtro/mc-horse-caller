@@ -6,6 +6,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.Tameable;
 import net.minecraft.entity.passive.AbstractHorseEntity;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.Box;
 import org.jetbrains.annotations.NotNull;
@@ -28,6 +29,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class HorsecallerClient implements ClientModInitializer {
+
+	private static final int BACALO_DISTANCE = 3;
 	private static final List<AbstractHorseEntity> bacalosList = new ArrayList<>();
 
 	public static final Logger LOGGER = LoggerFactory.getLogger("Horse Caller");
@@ -64,6 +67,7 @@ public class HorsecallerClient implements ClientModInitializer {
 			for (Entity entity : search.getResults()) {
 				if (entity instanceof AbstractHorseEntity horseEntity) {
 					if (horseEntity.isTame() && client.player.getUuid() == horseEntity.getOwnerUuid()) {
+						client.player.playSound(SoundEvents.ENTITY_HORSE_ANGRY, 0.8f, 1);
 						client.player.sendMessage(
 							Text.literal(
 								String.format("Horse UUID: %s, Player UUID: %s\n, Pos: %s\n",
@@ -86,11 +90,14 @@ public class HorsecallerClient implements ClientModInitializer {
 		client.submit(() -> {
 			if (!bacalosList.isEmpty()) {
 				var bacaloPrime = bacalosList.get(0);
-				var bacaloDistance = bacaloPrime.getPos().subtract(client.player.getPos()).length();
+				var bacaloDistance = bacaloPrime.distanceTo(client.player);
+				var x = client.player.getX() - BACALO_DISTANCE;
+				var y = client.player.getY() - BACALO_DISTANCE;
+				var z = client.player.getZ() - BACALO_DISTANCE;
 				var nav = bacaloPrime.getNavigation();
 
-				if (bacaloDistance > 3) {
-					client.getServer().submit(() -> nav.startMovingTo(client.player, 3));
+				if (bacaloDistance > BACALO_DISTANCE) {
+					client.getServer().submit(() -> nav.startMovingTo(x, y, z, 2));
 				} else {
 					System.out.println("Bacalo Distance: " + bacaloDistance);
 					bacalosList.remove(0);
