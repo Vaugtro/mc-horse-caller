@@ -39,7 +39,7 @@ public class HorsecallerClient implements ClientModInitializer {
 		assert client.player != null;
 		assert client.getServer() != null;
 
-		while (PRINT_KEY_BINDING.wasPressed() && LOCK.horseSearch.get()) {
+		while (PRINT_KEY_BINDING.wasPressed() && !LOCK.horseSearch.get()) {
 
 			PacketByteBuf sendBuffer = PacketByteBufs.create();
 

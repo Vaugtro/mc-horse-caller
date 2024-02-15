@@ -17,12 +17,12 @@ public class SearchData implements Serializable {
     private final UUID entityUUID;
     private final double distance;
     private short page;
-    private Identifier sprite;
+    //private Identifier sprite;
 
-    public SearchData(UUID entityUUID, double distance, String sprite){
+    public SearchData(UUID entityUUID, double distance){
         this.entityUUID = entityUUID;
         this.distance = distance;
-        this.sprite = new Identifier(sprite);
+        //this.sprite = new Identifier(sprite);
     }
 
     /**
@@ -56,14 +56,7 @@ public class SearchData implements Serializable {
     public void setPage(short page){
         this.page = page;
     }
-
-    /**
-     * Set the sprite path to their respective image
-     * @param sprite the sprite path
-     */
-    public void setSprite(String sprite) {
-        this.sprite = new Identifier("poop");
-    }
+    
 
     /**
      * Create a serializer for auxiliate with the Server/Client packet transfer

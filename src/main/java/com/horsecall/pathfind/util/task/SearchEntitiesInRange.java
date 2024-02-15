@@ -29,7 +29,6 @@ public class SearchEntitiesInRange implements Supplier<List<SearchData>> {
     private final Predicate<Entity> predicate;
     private List<Entity> results;
     private final Entity tgtEntity;
-    private final short pageSize;
 
     // Logger only for the search runnable
     public static final Logger LOGGER = LoggerFactory.getLogger(ID.MOD_ID + "/Server/Thread/Search");
@@ -75,7 +74,7 @@ public class SearchEntitiesInRange implements Supplier<List<SearchData>> {
             Function<Entity, String> sprite = entityTypes.containsKey(result.getClass().getName()) ? entityTypes.get(result.getClass().getName()) : entityTypes.get("Default");
 
             double distance = result.distanceTo(this.tgtEntity);
-            entities.add(new SearchData(result.getUuid(), distance, sprite.apply(result)));
+            entities.add(new SearchData(result.getUuid(), distance));
         }
 
         // Sort the entities per distance
@@ -107,7 +106,7 @@ public class SearchEntitiesInRange implements Supplier<List<SearchData>> {
         LOGGER.info("Searching Entities...");
 
         long startTime = System.currentTimeMillis();
-        List<Entity> results = this.world.getEntitiesByClass(Entity.class, searchRange, predicate);
+        this.results = this.world.getEntitiesByClass(Entity.class, searchRange, predicate);
         long endTime = System.currentTimeMillis();
 
         LOGGER.info("Elapsed time: " + (endTime - startTime) + "ms | Num. of Entities found: " + this.results.size());
