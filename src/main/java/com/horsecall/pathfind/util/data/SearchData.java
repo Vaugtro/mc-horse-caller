@@ -1,5 +1,7 @@
 package com.horsecall.pathfind.util.data;
 
+import net.minecraft.util.Identifier;
+
 import java.io.*;
 import java.util.UUID;
 
@@ -10,16 +12,17 @@ import java.util.UUID;
 // TODO: Replace entity to UUID
 // TODO: add page short int
 // TODO: add png path name
-public class EntityData implements Serializable {
+public class SearchData implements Serializable {
 
     private final UUID entityUUID;
     private final double distance;
     private short page;
-    private String sprite;
+    private Identifier sprite;
 
-    public EntityData(UUID entityUUID, double distance){
+    public SearchData(UUID entityUUID, double distance, String sprite){
         this.entityUUID = entityUUID;
         this.distance = distance;
+        this.sprite = new Identifier(sprite);
     }
 
     /**
@@ -59,7 +62,7 @@ public class EntityData implements Serializable {
      * @param sprite the sprite path
      */
     public void setSprite(String sprite) {
-        this.sprite = String.join(sprite, ".png");
+        this.sprite = new Identifier("poop");
     }
 
     /**
@@ -72,7 +75,7 @@ public class EntityData implements Serializable {
          * @param obj The object to be serialized
          * @return The serialized object
          */
-        public static byte[] serialize(EntityData obj){
+        public static byte[] serialize(SearchData obj){
 
             byte[] byteArray = null;
 
@@ -90,12 +93,12 @@ public class EntityData implements Serializable {
             return byteArray;
         }
 
-        public static EntityData deserialize(byte[] byteArray){
-            EntityData obj = null;
+        public static SearchData deserialize(byte[] byteArray){
+            SearchData obj = null;
             try {
                 ByteArrayInputStream bIn = new ByteArrayInputStream(byteArray);
                 ObjectInputStream in = new ObjectInputStream(bIn);
-                obj = (EntityData) in.readObject();
+                obj = (SearchData) in.readObject();
 
                 in.close();
             } catch (ClassNotFoundException | IOException e) {
