@@ -1,6 +1,6 @@
 package com.horsecall.pathfind.networking.client;
 
-import com.horsecall.pathfind.util.identifier.ID;
+import com.horsecall.pathfind.util.ID;
 import com.horsecall.pathfind.networking.client.packet.HorseSearch;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 

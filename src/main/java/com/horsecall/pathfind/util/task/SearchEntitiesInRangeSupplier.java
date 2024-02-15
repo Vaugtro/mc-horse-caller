@@ -1,8 +1,11 @@
 package com.horsecall.pathfind.util.task;
 
 
-import com.horsecall.pathfind.helper.EntityWithDistance;
+import com.horsecall.pathfind.util.data.EntityData;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.mob.SkeletonHorseEntity;
+import net.minecraft.entity.mob.ZombieHorseEntity;
+import net.minecraft.entity.passive.*;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.Box;
 import org.slf4j.Logger;
@@ -17,7 +20,7 @@ import java.util.function.Supplier;
 /**
  * Runnable to search entities in a predefined box
  */
-public class SearchEntitiesInRangeSupplier implements Supplier<List<EntityWithDistance>> {
+public class SearchEntitiesInRangeSupplier implements Supplier<List<EntityData>> {
     Box searchRange;
     private final ServerWorld world;
     private final Predicate<Entity> predicate;
@@ -47,17 +50,38 @@ public class SearchEntitiesInRangeSupplier implements Supplier<List<EntityWithDi
      * @param entity The entity being used to calculate the distances
      * @return A sorted list, containing the entities from the result and their respective distances from the target
      */
-    private List<EntityWithDistance> sortResultsPerDistance(Entity entity) {
-        List<EntityWithDistance> entitiesWithDistances = new ArrayList<>();
+    private List<EntityData> sortResultsPerDistance(Entity entity) {
+        List<EntityData> entities = new ArrayList<>();
 
         // Create the list of EntitiesWithDistance
         for (Entity result: results){
+
+            String sprite;
+
+            // Verify the sub-type of entity to set the sprite path
+            if (result instanceof HorseEntity horse) {
+
+            } else if (result instanceof CamelEntity) {
+
+            } else if (result instanceof DonkeyEntity) {
+
+            } else if (result instanceof MuleEntity) {
+
+            } else if (result instanceof SkeletonHorseEntity) {
+
+            } else if (result instanceof ZombieHorseEntity) {
+
+            } else {
+                continue;
+            }
+
+
             double distance = result.distanceTo(entity);
-            entitiesWithDistances.add(new EntityWithDistance(result.getUuid(), distance));
+            entities.add(new EntityData(result.getUuid(), distance));
         }
 
         // Sort the entities per distance
-        entitiesWithDistances.sort(Comparator.comparingDouble(EntityWithDistance::getDistance));
+        entities.sort(Comparator.comparingDouble(EntityData::getDistance));
 
         // Set the page iterator
         short page = 1;
@@ -66,7 +90,7 @@ public class SearchEntitiesInRangeSupplier implements Supplier<List<EntityWithDi
         short count = 0;
 
         // Set the page for the GUI to each entity
-        for (EntityWithDistance item: entitiesWithDistances){
+        for (EntityData item: entities){
             item.setPage(page);
 
             count++;
@@ -77,11 +101,11 @@ public class SearchEntitiesInRangeSupplier implements Supplier<List<EntityWithDi
             }
         }
 
-        return entitiesWithDistances;
+        return entities;
     }
 
     @Override
-    public List<EntityWithDistance> get() {
+    public List<EntityData> get() {
         LOGGER.info("Searching Entities...");
 
         long startTime = System.currentTimeMillis();
@@ -92,7 +116,7 @@ public class SearchEntitiesInRangeSupplier implements Supplier<List<EntityWithDi
 
         startTime = System.currentTimeMillis();
         LOGGER.info("Building list and sorting Entities...");
-        List<EntityWithDistance> sorted = sortResultsPerDistance(tgtEntity);
+        List<EntityData> sorted = sortResultsPerDistance(tgtEntity);
         endTime = System.currentTimeMillis();
         LOGGER.info("Entities listed and sorted | Elapsed time: " + (endTime - startTime) + "ms");
 

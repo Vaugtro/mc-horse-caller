@@ -1,11 +1,10 @@
 package com.horsecall.pathfind.networking.packet;
 
-import com.horsecall.pathfind.util.identifier.ID;
-import com.horsecall.pathfind.helper.EntityWithDistance;
+import com.horsecall.pathfind.util.ID;
+import com.horsecall.pathfind.util.data.EntityData;
 import com.horsecall.pathfind.util.task.SearchEntitiesInRangeSupplier;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.networking.v1.PacketSender;
-import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.passive.AbstractHorseEntity;
 import net.minecraft.network.PacketByteBuf;
@@ -44,10 +43,10 @@ public class HorseSearch{
         Predicate<Entity> predicate = entity -> ((entity instanceof AbstractHorseEntity horseEntity) && horseEntity.getOwnerUuid() != null) && !horseEntity.hasPassengers() && horseEntity.getOwnerUuid().compareTo(playerUuid) == 0;
 
         // Execute the async runnable thread on the server
-        CompletableFuture<List<EntityWithDistance>> completableFutureSearch = server.submit(new SearchEntitiesInRangeSupplier(searchRange, world, predicate, player));
+        CompletableFuture<List<EntityData>> completableFutureSearch = server.submit(new SearchEntitiesInRangeSupplier(searchRange, world, predicate, player));
 
         // Wait for the search to finish and return the results
-        List<EntityWithDistance> results;
+        List<EntityData> results;
 
         try {
             results = completableFutureSearch.get();
@@ -59,15 +58,14 @@ public class HorseSearch{
         PacketByteBuf sendBuffer = PacketByteBufs.create();
 
         // Serialize packet to send results to client
-        sendBuffer.writeCollection(results, new PacketByteBuf.PacketWriter<EntityWithDistance>() {
+        sendBuffer.writeCollection(results, new PacketByteBuf.PacketWriter<EntityData>() {
             @Override
-            public void accept(PacketByteBuf packetByteBuf, EntityWithDistance entityWithDistance) {
-                packetByteBuf.writeByteArray(EntityWithDistance.Serializer.serialize(entityWithDistance));
+            public void accept(PacketByteBuf packetByteBuf, EntityData entityWithDistance) {
+                packetByteBuf.writeByteArray(EntityData.Serializer.serialize(entityWithDistance));
             }
         });
 
         //ServerPlayNetworking.send(player, ID.Packet.SEARCH_HORSE_SERVER_ID, sendBuffer);
-
         responseSender.sendPacket(ID.Packet.SEARCH_HORSE_SERVER_ID, sendBuffer);
     }
 

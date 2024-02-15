@@ -1,6 +1,4 @@
-package com.horsecall.pathfind.helper;
-
-import net.minecraft.entity.Entity;
+package com.horsecall.pathfind.util.data;
 
 import java.io.*;
 import java.util.UUID;
@@ -12,12 +10,14 @@ import java.util.UUID;
 // TODO: Replace entity to UUID
 // TODO: add page short int
 // TODO: add png path name
-public class EntityWithDistance implements Serializable {
+public class EntityData implements Serializable {
+
     private final UUID entityUUID;
     private final double distance;
     private short page;
+    private String sprite;
 
-    public EntityWithDistance (UUID entityUUID, double distance){
+    public EntityData(UUID entityUUID, double distance){
         this.entityUUID = entityUUID;
         this.distance = distance;
     }
@@ -54,8 +54,25 @@ public class EntityWithDistance implements Serializable {
         this.page = page;
     }
 
-    public class Serializer {
-        public static byte[] serialize(EntityWithDistance obj){
+    /**
+     * Set the sprite path to their respective image
+     * @param sprite the sprite path
+     */
+    public void setSprite(String sprite) {
+        this.sprite = String.join(sprite, ".png");
+    }
+
+    /**
+     * Create a serializer for auxiliate with the Server/Client packet transfer
+     */
+    public static class Serializer {
+
+        /**
+         * Serialize and deserialize data associated with the EntityData class
+         * @param obj The object to be serialized
+         * @return The serialized object
+         */
+        public static byte[] serialize(EntityData obj){
 
             byte[] byteArray = null;
 
@@ -73,12 +90,12 @@ public class EntityWithDistance implements Serializable {
             return byteArray;
         }
 
-        public static EntityWithDistance desserialize(byte[] byteArray){
-            EntityWithDistance obj = null;
+        public static EntityData deserialize(byte[] byteArray){
+            EntityData obj = null;
             try {
                 ByteArrayInputStream bIn = new ByteArrayInputStream(byteArray);
                 ObjectInputStream in = new ObjectInputStream(bIn);
-                obj = (EntityWithDistance) in.readObject();
+                obj = (EntityData) in.readObject();
 
                 in.close();
             } catch (ClassNotFoundException | IOException e) {

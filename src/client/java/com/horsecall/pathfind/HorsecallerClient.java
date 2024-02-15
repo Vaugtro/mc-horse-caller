@@ -1,13 +1,13 @@
 package com.horsecall.pathfind;
 
 import com.horsecall.pathfind.networking.client.S2CPackets;
-import com.horsecall.pathfind.util.identifier.ID;
+import com.horsecall.pathfind.util.client.LOCK;
+import com.horsecall.pathfind.util.ID;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
 import org.lwjgl.glfw.GLFW;
 
 import net.minecraft.client.option.KeyBinding;
@@ -20,10 +20,10 @@ import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Set;
-
 public class HorsecallerClient implements ClientModInitializer {
 	public static final Logger LOGGER = LoggerFactory.getLogger("Horse Caller");
+
+	static boolean keyLock = true;
 
 	// Set a default keybinding for calling the horse. Being the minus key the default key.
 	private static final KeyBinding PRINT_KEY_BINDING = KeyBindingHelper.registerKeyBinding(
@@ -39,12 +39,12 @@ public class HorsecallerClient implements ClientModInitializer {
 		assert client.player != null;
 		assert client.getServer() != null;
 
-		while (PRINT_KEY_BINDING.wasPressed()) {
+		while (PRINT_KEY_BINDING.wasPressed() && LOCK.horseSearch.get()) {
 
 			PacketByteBuf sendBuffer = PacketByteBufs.create();
 
 			ClientPlayNetworking.send(ID.Packet.SEARCH_HORSE_CLIENT_ID, sendBuffer);
-
+			LOCK.horseSearch.toggle();
 
 			client.player.sendMessage(Text.literal("The Key MINUS was pressed!"), false);
 		}

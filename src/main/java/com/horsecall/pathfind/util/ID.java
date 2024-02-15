@@ -1,4 +1,4 @@
-package com.horsecall.pathfind.util.identifier;
+package com.horsecall.pathfind.util;
 
 import com.horsecall.pathfind.Horsecaller;
 import net.minecraft.util.Identifier;
