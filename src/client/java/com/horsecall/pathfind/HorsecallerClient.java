@@ -5,6 +5,9 @@ import com.horsecall.pathfind.util.client.LOCK;
 import com.horsecall.pathfind.util.ID;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
+import com.horsecall.pathfind.gui.HorseSelectorScreen;
+import com.horsecall.pathfind.helper.EntityWithDistance;
+import com.horsecall.pathfind.runnable.SearchEntitiesInRangeRunnable;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.text.Text;
@@ -34,14 +37,21 @@ public class HorsecallerClient implements ClientModInitializer {
 					"key.category.call-horse"
 			)
 	);
+	// INFO: Keybind just for testing the HorseSelectorScreen
+	private static final KeyBinding SHOW = KeyBindingHelper.registerKeyBinding(
+			new KeyBinding(
+					"key.horse-caller.pp",
+					InputUtil.Type.KEYSYM,
+					GLFW.GLFW_KEY_EQUAL,
+					"key.category.pp"
+			)
+	);
 
 	private static void onEndTick(MinecraftClient client) {
 		assert client.player != null;
 		assert client.getServer() != null;
-
+    
 		while (PRINT_KEY_BINDING.wasPressed() && !LOCK.horseSearch.get()) {
-
-			PacketByteBuf sendBuffer = PacketByteBufs.create();
 
 			ClientPlayNetworking.send(ID.Packet.SEARCH_HORSE_CLIENT_ID, sendBuffer);
 			LOCK.horseSearch.toggle();
