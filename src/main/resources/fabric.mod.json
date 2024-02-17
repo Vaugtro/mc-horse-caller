@@ -20,6 +20,9 @@
 		],
 		"client": [
 			"com.horsecall.pathfind.HorsecallerClient"
+		],
+		"server": [
+			"com.horsecall.pathfind.HorsecallerServer"
 		]
 	},
 	"mixins": [
